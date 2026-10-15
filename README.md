@@ -34,7 +34,7 @@ In a high-volume helpdesk environment, manually triaging inbound tickets creates
    * In your n8n workspace, go to the top right menu and select **Import from File**, or simply paste the JSON directly into your canvas.
 2. **Configure Credentials:**
    * **IMAP:** Connect your dedicated support email address.
-   * **HTTP Request:** Add your Gemini API key (via Google AI Studio) to the Header Auth.
+   * **HTTP Request:** Open the HTTP Request node and replace YOUR_GEMINI_API_KEY_HERE in the URL with your actual Google AI Studio key.
    * **Jira SW Cloud API:** Add your Atlassian email, API Token, and Domain URL.
    * **Slack API:** Connect your Slack Bot OAuth token.
 3. **Adjust Routing Logic (Optional):**
