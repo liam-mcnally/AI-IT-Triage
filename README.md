@@ -30,7 +30,7 @@ In a high-volume helpdesk environment, manually triaging inbound tickets creates
 ## 🚀 How to Use This Workflow
 
 1. **Import the Workflow:**
-   * Download `ITTriage.json` from this repository.
+   * Download `ITtriage.json` from this repository.
    * In your n8n workspace, go to the top right menu and select **Import from File**, or simply paste the JSON directly into your canvas.
 2. **Configure Credentials:**
    * **IMAP:** Connect your dedicated support email address.
