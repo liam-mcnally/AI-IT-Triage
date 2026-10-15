@@ -1,0 +1,273 @@
+{
+  "name": "ITtriage",
+  "nodes": [
+    {
+      "parameters": {
+        "format": "resolved",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ad30f5c7-0d88-4e3f-aa60-0fded5bb0a96",
+      "name": "Email Trigger (IMAP)",
+      "credentials": {
+        "imap": {
+          "id": "9ZWf1Y6udieWys9m",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=YOUR_GEMINI_API_KEY_HERE",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": {{ JSON.stringify(\"You are an IT Support Triage Dispatcher. Your job is to read the incoming email and categorize the issue. You must output the result strictly according to the provided JSON schema.\\n\\nEmail Subject: \" + $json.subject + \"\\nEmail Body: \" + $json.text) }}\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"responseMimeType\": \"application/json\",\n    \"responseSchema\": {\n      \"type\": \"OBJECT\",\n      \"properties\": {\n        \"issue_category\": {\n          \"type\": \"STRING\",\n          \"description\": \"Categorize as: Hardware, Software, Network, or Access\",\n          \"enum\": [\"Hardware\", \"Software\", \"Network\", \"Access\"]\n        },\n        \"priority_level\": {\n          \"type\": \"STRING\",\n          \"description\": \"Determine priority based on urgency and business impact: Low, Medium, High, or Critical\",\n          \"enum\": [\"Low\", \"Medium\", \"High\", \"Critical\"]\n        },\n        \"summary\": {\n          \"type\": \"STRING\",\n          \"description\": \"A 1-sentence professional summary of the issue.\"\n        }\n      },\n      \"required\": [\"issue_category\", \"priority_level\", \"summary\"]\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "23a0d2ed-c26b-4905-9fec-f2c0b3dc76da",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bfc2d740-bbc3-4f76-bbe5-a4ab392ce9a7",
+              "name": "parsedData",
+              "value": "={{ JSON.parse($json.candidates[0].content.parts[0].text) }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "2011ecb6-90a8-4e2b-b5c4-a0666d07b7fd",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.parsedData.priority_level }}",
+                    "rightValue": "Critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e4d8b72a-a897-4b3c-8a04-40a85a5549c7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "91502cbf-6b80-4d2f-b253-c7cde251b2f5",
+                    "leftValue": "={{ $json.parsedData.priority_level }}",
+                    "rightValue": "Critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        0
+      ],
+      "id": "3356b728-d90e-4942-b36c-308b3d80391f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C8XVDTBRD",
+          "mode": "list",
+          "cachedResultName": "it-alerts"
+        },
+        "text": "={{ \"🚨 *CRITICAL IT ALERT*\\n*Category:* \" + $json.parsedData.issue_category + \"\\n*Summary:* \" + $json.parsedData.summary }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        848,
+        -224
+      ],
+      "id": "5796ba5e-bf24-4793-bb70-0c09a3a3939f",
+      "name": "Send a message",
+      "webhookId": "d1807e28-335b-4ac9-a9c5-543b7e35ff54",
+      "credentials": {
+        "slackApi": {
+          "id": "MUSKXwmHyWFXpoXp",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "project": {
+          "__rl": true,
+          "value": "10001",
+          "mode": "list",
+          "cachedResultName": "My Kanban Space"
+        },
+        "issueType": {
+          "__rl": true,
+          "value": "10009",
+          "mode": "list",
+          "cachedResultName": "Task"
+        },
+        "summary": "={{ $('Edit Fields').item.json.parsedData.summary }}",
+        "additionalFields": {
+          "description": "=*Priority:* {{ $('Edit Fields').item.json.parsedData.priority_level }}\n*Category:* {{ $('Edit Fields').item.json.parsedData.issue_category }}\n\n*Original Request:*\n{{ $('Email Trigger (IMAP)').item.json.text }}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        944,
+        80
+      ],
+      "id": "d2228ba0-9079-43c5-8364-15179c31a860",
+      "name": "Create an issue",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "XyX2Ndx3YrlEYvZz",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create an issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Create an issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "versionId": "6f5614c9-7e45-479c-981c-4c8e66c6221d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "301e01cc920cec5401a15819e1fb5604d2cf5cd32b320d3c5668cd6f43a4592a"
+  },
+  "nodeGroups": [],
+  "id": "inCC8Rj6AmYyCDEW",
+  "tags": []
+}
