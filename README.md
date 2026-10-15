@@ -41,4 +41,4 @@ In a high-volume helpdesk environment, manually triaging inbound tickets creates
    * Open the **Switch** node to modify the routing rules (e.g., adding a specific path for 'Hardware' requests or different Slack channels).
 
 ## 🔒 Security Note
-The included `ITTriage.json` file contains only the structural logic of the workflow. All API tokens, passwords, and workspace URLs are stripped automatically by n8n during export and are not exposed in this repository.
+The included `ITtriage.json` file contains only the structural logic of the workflow. All API tokens, passwords, and workspace URLs are stripped automatically by n8n during export and are not exposed in this repository.
